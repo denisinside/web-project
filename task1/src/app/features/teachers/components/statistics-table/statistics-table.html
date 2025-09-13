@@ -1,0 +1,47 @@
+<div class="table-scroll-container">
+  <table class="table-statistics">
+    <thead>
+      <tr>
+        <th (click)="sortBy('name')">
+          Name 
+          <span class="table-arrow" [style.opacity]="sortColumn() === 'name' ? '1' : '0'">↓</span>
+        </th>
+        <th (click)="sortBy('specialty')">
+          Speciality 
+          <span class="table-arrow" [style.opacity]="sortColumn() === 'specialty' ? '1' : '0'">↓</span>
+        </th>
+        <th (click)="sortBy('age')">
+          Age 
+          <span class="table-arrow" [style.opacity]="sortColumn() === 'age' ? '1' : '0'">↓</span>
+        </th>
+        <th (click)="sortBy('gender')">
+          Gender 
+          <span class="table-arrow" [style.opacity]="sortColumn() === 'gender' ? '1' : '0'">↓</span>
+        </th>
+        <th (click)="sortBy('country')">
+          Nationality 
+          <span class="table-arrow" [style.opacity]="sortColumn() === 'country' ? '1' : '0'">↓</span>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (teacher of sortedData(); track teacher.id) {
+        <tr>
+          <td>{{ teacher.firstName }} {{ teacher.lastName }}</td>
+          <td>{{ teacher.specialty }}</td>
+          <td>{{ teacher.age }}</td>
+          <td>{{ teacher.gender }}</td>
+          <td>{{ teacher.country }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<div class="page-number">
+  <span class="selected-page">1</span>
+  <span class="unselected-page">2</span>
+  <span class="unselected-page">3</span>
+  <span>...</span>
+  <span class="unselected-page">Last</span>
+</div>

@@ -1,0 +1,115 @@
+@if (isVisible()) {
+  <section class="popup-container" (click)="onBackdropClick($event)">
+    <dialog class="add-teacher-popup" open>
+      <header>
+        <h2>Add Teacher</h2>
+        <span class="cross" (click)="closeModal()">x</span>
+      </header>
+
+      <form class="dialog-main" (ngSubmit)="onSubmit($event)" #teacherForm="ngForm">
+        <fieldset>
+          <label for="addName">Name</label>
+          <input
+            placeholder="Enter name"
+            type="text"
+            id="addName"
+            name="firstName"
+            [(ngModel)]="teacherData.firstName"
+            required
+          />
+        </fieldset>
+
+        <fieldset>
+          <label for="addLastName">Last Name</label>
+          <input
+            placeholder="Enter last name"
+            type="text"
+            id="addLastName"
+            name="lastName"
+            [(ngModel)]="teacherData.lastName"
+            required
+          />
+        </fieldset>
+
+        <fieldset>
+          <label for="addSpeciality">Speciality</label>
+          <select id="addSpeciality" name="specialty" [(ngModel)]="teacherData.specialty" required>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Physics">Physics</option>
+            <option value="Vocal">Vocal</option>
+            <option value="Chemistry">Chemistry</option>
+            <option value="Chess">Chess</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Biology">Biology</option>
+            <option value="Medicine">Medicine</option>
+            <option value="Art">Art</option>
+            <option value="English">English</option>
+            <option value="Statistics">Statistics</option>
+          </select>
+        </fieldset>
+
+        <div class="two-columns">
+          <fieldset class="half-width">
+            <label for="addCountry">Country</label>
+            <select id="addCountry" name="country" [(ngModel)]="teacherData.country" required>
+              <option value="Ukraine">Ukraine</option>
+              <option value="India">India</option>
+              <option value="UK">UK</option>
+              <option value="Belarus">Belarus</option>
+              <option value="Denmark">Denmark</option>
+              <option value="Poland">Poland</option>
+              <option value="Belgium">Belgium</option>
+              <option value="China">China</option>
+              <option value="Vietnam">Vietnam</option>
+              <option value="USA">USA</option>
+              <option value="Ireland">Ireland</option>
+              <option value="England">England</option>
+              <option value="Austria">Austria</option>
+              <option value="Italy">Italy</option>
+              <option value="Netherlands">Netherlands</option>
+              <option value="Scotland">Scotland</option>
+              <option value="France">France</option>
+            </select>
+          </fieldset>
+
+          <fieldset class="half-width">
+            <label for="addCity">City</label>
+            <input type="text" id="addCity" name="city" [(ngModel)]="teacherData.city" />
+          </fieldset>
+        </div>
+
+        <div class="two-columns">
+          <fieldset class="half-width">
+            <label for="addEmail">Email</label>
+            <input type="email" id="addEmail" name="email" [(ngModel)]="teacherData.email" required />
+          </fieldset>
+
+          <fieldset class="half-width">
+            <label for="addPhone">Phone</label>
+            <input type="tel" id="addPhone" name="phone" [(ngModel)]="teacherData.phone" required />
+          </fieldset>
+        </div>
+
+        <fieldset class="half-width">
+          <label for="addAge">Age</label>
+          <input type="number" id="addAge" name="age" [(ngModel)]="teacherData.age" min="18" max="100" required />
+        </fieldset>
+
+        <div class="two-columns inline-inputs">
+          <legend>Sex</legend>
+          <label for="male">Male</label>
+          <input type="radio" id="male" name="gender" value="Male" [(ngModel)]="teacherData.gender" />
+          <label for="female">Female</label>
+          <input type="radio" id="female" name="gender" value="Female" [(ngModel)]="teacherData.gender" />
+        </div>
+
+        <fieldset>
+          <label for="addPhotoUrl">Photo URL (optional)</label>
+          <input type="url" id="addPhotoUrl" name="photoUrl" [(ngModel)]="teacherData.photoUrl" />
+        </fieldset>
+
+        <button type="submit" [disabled]="!teacherForm.valid">Add</button>
+      </form>
+    </dialog>
+  </section>
+}

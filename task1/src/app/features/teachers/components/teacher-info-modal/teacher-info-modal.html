@@ -1,0 +1,58 @@
+@if (isVisible() && selectedTeacher()) {
+  <section class="popup-container" (click)="onBackdropClick($event)">
+    <dialog class="teacher-info-popup" open>
+      <header>
+        <h2>Teacher Info</h2>
+        <span class="cross" (click)="closeModal()">x</span>
+      </header>
+
+      <section class="dialog-main">
+        <div class="teacher-info-layout">
+          @if (selectedTeacher()!.photoUrl) {
+            <img
+              class="teacher-photo-info-popup"
+              [src]="selectedTeacher()!.photoUrl"
+              alt="Teacher's photo"
+            />
+          } @else {
+            <div class="teacher-photo-info-popup teacher-initials-avatar">
+              {{ getInitials() }}
+            </div>
+          }
+
+          <article class="teacher-info-content">
+          <img
+            [src]="selectedTeacher()!.isFavorite ? 'assets/images/star.png' : 'assets/images/empty-star.png'"
+            alt="star icon"
+            class="star"
+            (click)="toggleFavorite()"
+          />
+          <h1>{{ selectedTeacher()!.firstName }} {{ selectedTeacher()!.lastName }}</h1>
+          <h3>{{ selectedTeacher()!.specialty }}</h3>
+          <address>
+            <p>{{ selectedTeacher()!.city }}, {{ selectedTeacher()!.country }}</p>
+            <p>{{ selectedTeacher()!.age }}, {{ selectedTeacher()!.gender }}</p>
+            <p class="email">{{ selectedTeacher()!.email }}</p>
+            <p>{{ selectedTeacher()!.phone }}</p>
+          </address>
+          </article>
+        </div>
+
+        <article class="description">
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            Pellentesque fermentum vel est quis viverra. Praesent lobortis
+            ligula eu erat cursus, eu placerat mauris tempus. Cras tincidunt
+            tempor viverra. Nulla condimentum, neque id interdum venenatis,
+            augue dui vestibulum turpis, accumsan posuere ipsum neque eget
+            massa. Maecenas porta est malesuada interdum aliquam. Donec felis
+            sem, hendrerit at vulputate vel, feugiat id ipsum. Duis auctor
+            dapibus aliquet.
+          </p>
+        </article>
+
+        <a href="#" class="toggle-map" (click)="$event.preventDefault()">toggle map</a>
+      </section>
+    </dialog>
+  </section>
+}
