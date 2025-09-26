@@ -1,0 +1,36 @@
+.validation-errors {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 10px 0;
+}
+
+.validation-errors h3 {
+  color: #c33;
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.validation-errors ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.validation-errors li {
+  color: #c33;
+  margin-bottom: 5px;
+}
+
+.error {
+  border-color: #c33 !important;
+  background-color: #fee !important;
+}
+
+.error-message {
+  color: #c33;
+  font-size: 12px;
+  display: block;
+  margin-top: 5px;
+}
+

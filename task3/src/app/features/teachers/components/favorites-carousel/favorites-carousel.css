@@ -1,0 +1,28 @@
+/* Additional styles for favorites carousel centering */
+.favorites-figures {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 20px;
+  min-height: 200px;
+}
+
+/* When there are few items, center them */
+.favorites-figures .teacher-figure {
+  flex-shrink: 0;
+  width: 140px;
+}
+
+/* Center the container content */
+.favorites-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorites-container .scroll {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

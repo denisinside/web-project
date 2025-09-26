@@ -7,5 +7,7 @@ function getMatchingPercentage(users, searchParams = {}) {
     return Math.round((matchingCount / totalCount) * 100);
 }
 
-const result = getMatchingPercentage(formatMockData(), { age: { min: 29, max: 40 } });
-console.log(result);
+export { getMatchingPercentage };
+
+//const result = getMatchingPercentage(formatMockData(), { age: { min: 29, max: 40 } });
+//console.log(result);
