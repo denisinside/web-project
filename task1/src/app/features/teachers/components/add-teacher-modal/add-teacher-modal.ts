@@ -84,7 +84,7 @@ export class AddTeacherModal implements OnInit {
 
   private validateTeacherData(): ValidationError[] {
     const errors: ValidationError[] = [];
-    
+
     if (!this.teacherData.full_name || this.teacherData.full_name.trim() === '') {
       errors.push({ field: 'full_name', message: 'Full name is required' });
     } else if (!this.teacherService.validateNameValue(this.teacherData.full_name)) {
@@ -117,8 +117,11 @@ export class AddTeacherModal implements OnInit {
     
     if (!this.teacherData.phone || this.teacherData.phone.trim() === '') {
       errors.push({ field: 'phone', message: 'Phone is required' });
-    } else if (!this.teacherService.validatePhone(this.teacherData.phone)) {
-      errors.push({ field: 'phone', message: 'Invalid phone format' });
+    } else {    
+      this.teacherData.phone = this.teacherService.formatPhone(this.teacherData.phone);
+      if (!this.teacherService.validatePhone(this.teacherData.phone)) {
+        errors.push({ field: 'phone', message: 'Invalid phone format' });
+      }
     }
     
     if (!this.teacherData.gender || !this.teacherService.validateNameValue(this.teacherData.gender)) {

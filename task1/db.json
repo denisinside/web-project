@@ -1,0 +1,26 @@
+{
+  "teachers": [
+    {
+      "id": "2193",
+      "gender": "Male",
+      "title": "Mr",
+      "full_name": "SHVACHKA DENYS",
+      "city": "Полтава",
+      "state": "",
+      "country": "Ukraine",
+      "postcode": null,
+      "coordinates": null,
+      "timezone": null,
+      "email": "dimabanana198@gmail.com",
+      "b_date": null,
+      "age": 25,
+      "phone": "(099) 533-2317",
+      "picture_large": "https://cdn.chesno.org/web/media/thumbs/persons/n8PQN5tE-mr9.jpg",
+      "picture_thumbnail": "",
+      "course": "Physics",
+      "bg_color": null,
+      "note": null,
+      "favorite": false
+    }
+  ]
+}

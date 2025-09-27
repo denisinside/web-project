@@ -1,7 +1,9 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Teacher } from '../../models/teacher.model';
 import { AdditionalUser, User } from '../../models/user.model';
 import { randomUserMock, additionalUsers } from '../FE4U-Lab2-mock';
+import { UserApiService } from './user-api.service';
 
 export interface TeacherFilter {
   age: '18-31' | '31-44' | '45+' | '';
@@ -16,9 +18,18 @@ export interface TeacherFilter {
   providedIn: 'root'
 })
 export class TeacherService {
+  private http = inject(HttpClient);
+  private userApiService = inject(UserApiService);
+
+  private readonly jsonServerUrl = 'http://localhost:3000/teachers';
+
   private teachersSignal = signal<Teacher[]>([]);
   private selectedTeacherSignal = signal<Teacher | null>(null);
   private isModalVisibleSignal = signal<boolean>(false);
+
+  private currentPageSignal = signal<number>(1);
+  private isLoadingSignal = signal<boolean>(false);
+  private readonly teachersPerPage = 15;
 
   private filtersSignal = signal<TeacherFilter>({
     age: '',
@@ -31,10 +42,27 @@ export class TeacherService {
 
   teachers = computed(() => this.teachersSignal());
   filters = computed(() => this.filtersSignal());
-  statisticsData = computed(() => this.teachersSignal());
+  statisticsData = computed(() => this.filteredTeachers());
   selectedTeacher = computed(() => this.selectedTeacherSignal());
   isModalVisible = computed(() => this.isModalVisibleSignal());
-  
+
+  currentPage = computed(() => this.currentPageSignal());
+  isLoading = computed(() => this.isLoadingSignal());
+
+  paginatedTeachers = computed(() => {
+      const filtered = this.filteredTeachers();
+      const page = this.currentPageSignal();
+      const startIndex = (page - 1) * this.teachersPerPage;
+      const endIndex = startIndex + this.teachersPerPage;
+      return filtered.slice(startIndex, endIndex);
+  });
+
+  totalPages = computed(() => {
+      const total = this.filteredTeachers().length;
+      if (total === 0) return 1;
+      return Math.ceil(total / this.teachersPerPage);
+  });
+
   availableCountries = computed(() => {
     const teachers = this.teachersSignal();
     const countries = [...new Set(teachers.map(teacher => teacher.country).filter(Boolean))];
@@ -70,6 +98,27 @@ export class TeacherService {
 
   updateFilters(newFilters: Partial<TeacherFilter>) {
     this.filtersSignal.update(current => ({ ...current, ...newFilters }));
+    this.currentPageSignal.set(1);
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPageSignal.set(page);
+    }
+  }
+
+  previousPage() {
+    this.goToPage(this.currentPageSignal() - 1);
+  }
+
+  nextPage() {
+    const currentPage = this.currentPageSignal();
+    const totalPages = this.totalPages();
+    if (currentPage < totalPages) {
+      this.goToPage(currentPage + 1);
+    } else {
+      this.loadNextPage();
+    }
   }
 
   toggleFavorite(teacherId: string) {
@@ -100,13 +149,20 @@ export class TeacherService {
     }
   }
 
-  addTeacher(newTeacher: Omit<Teacher, 'id'>) {
-    const teacher: Teacher = {
-      ...newTeacher,
-      id: this.getRandomID()
+  addTeacher(newTeacherData: Omit<Teacher, 'id'>) {
+    const teacherPayload = {
+      ...newTeacherData
     };
-    
-    this.teachersSignal.update(teachers => [...teachers, teacher]);
+
+    this.http.post<Teacher>(this.jsonServerUrl, teacherPayload).subscribe({
+      next: (addedTeacher) => {
+        this.teachersSignal.update(teachers => [...teachers, addedTeacher]);
+        console.log('Teacher added successfully via json-server:', addedTeacher);
+      },
+      error: (error) => {
+        console.error('Error adding teacher via json-server:', error);
+      }
+    });
   }
 
   getTeacherById(id: string) {
@@ -158,7 +214,7 @@ export class TeacherService {
         email: user.email || null,
         b_date: user.dob?.date || null,
         age: user.dob?.age || null,
-        phone: user.phone || null,
+        phone: user.phone ? this.formatPhone(user.phone) : null,
         picture_large: user.picture?.large || null,
         picture_thumbnail: user.picture?.thumbnail || null,
         id: this.getRandomID(),
@@ -181,7 +237,7 @@ export class TeacherService {
         email: user.email || null,
         b_date: user.b_day || null,
         age: user.age || null,
-        phone: user.phone || null,
+        phone: user.phone ? this.formatPhone(user.phone) : null,
         picture_large: user.picture_large || null,
         picture_thumbnail: user.picture_thumbnail || null,
         id: this.getRandomID(),
@@ -380,7 +436,35 @@ export class TeacherService {
   }
 
   validatePhone(phone: string) {
-    return typeof phone === 'string' && phone.match(/^[\+]?[0-9]{0,3}[\W]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im);
+    if (typeof phone !== 'string' || !phone.trim()) {
+      return false;
+    }
+    
+    const cleanedPhone = phone.replace(/[\s\-\(\)\.\+\/]/g, '');
+    
+    if (!/^\d+$/.test(cleanedPhone)) {
+      return false;
+    }
+    
+    return cleanedPhone.length >= 6 && cleanedPhone.length <= 15;
+  }
+
+  formatPhone(phone: string): string {
+    if (!this.validatePhone(phone)) {
+      return phone;
+    }
+    
+    const cleanedPhone = phone.replace(/[\s\-\(\)\.\+\/]/g, '');
+    
+    if (cleanedPhone.length === 10) {
+      // (XXX) XXX-XXXX
+      return `(${cleanedPhone.slice(0, 3)}) ${cleanedPhone.slice(3, 6)}-${cleanedPhone.slice(6)}`;
+    } else if (cleanedPhone.length >= 6 && cleanedPhone.length <= 15) {
+      // spaces every 3 digits
+      return cleanedPhone.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+    }
+    
+    return phone; 
   }
 
   validateEmail(email: string) {
@@ -420,15 +504,79 @@ validateUser(user: Teacher) {
 
 
   initializeTeachers(): void {
+    this.collectNewTeachers(45, []);
+  }
+
+  private async initializeWithMockData(): Promise<void> {
     try {
-        const formattedUsers = this.formatMockData();
-        const validUsers = formattedUsers.filter(user => this.validateUser(user));
-        this.teachersSignal.set(validUsers);
-        console.log(`Initialized ${validUsers.length} valid teachers`);
+      const formattedUsers = this.formatMockData();
+      const validUsers = formattedUsers.filter(user => this.validateUser(user));
+      this.teachersSignal.set(validUsers);
+      console.log(`Initialized ${validUsers.length} valid teachers from mock data only`);
     } catch (error) {
-        console.error('Error initializing teachers:', error);
-        this.teachersSignal.set([]);
+      console.error('Error initializing teachers with mock data:', error);
+      this.teachersSignal.set([]);
     }
   }
 
+  private collectNewTeachers(needed: number, collected: Teacher[], page: number = 1): void {
+    if (needed <= 0) {
+      this.teachersSignal.update(existing => [...existing, ...collected]);
+      this.currentPageSignal.set(page);
+      this.isLoadingSignal.set(false);
+      return;
+    }
+
+    const fetchCount = Math.max(needed, 15);
+
+    this.userApiService.getUsersWithParams({ results: fetchCount }).subscribe({
+      next: apiUsers => {
+        if (!apiUsers || apiUsers.length === 0) {
+          console.warn("API returned no users, stopping load more.");
+          if (collected.length > 0) {
+            this.teachersSignal.update(existing => [...existing, ...collected]);
+            this.currentPageSignal.set(page);
+          }
+          this.isLoadingSignal.set(false);
+          return;
+        }
+
+        const formattedUsers = apiUsers.map(user => this.userFormatter(user));
+        const validUsers = formattedUsers.filter(user => this.validateUser(user));
+
+        let stillNeeded = needed;
+        for (const user of validUsers) {
+          const isDuplicate = this.teachersSignal().some(existing => this.isDuplicate(user, existing)) ||
+            collected.some(existing => this.isDuplicate(user, existing));
+          if (!isDuplicate) {
+            collected.push(user);
+            stillNeeded--;
+            if (stillNeeded === 0) break;
+          }
+        }
+
+        if (stillNeeded > 0 && apiUsers.length < fetchCount) {
+          if (collected.length > 0) {
+            this.teachersSignal.update(existing => [...existing, ...collected]);
+            this.currentPageSignal.set(page);
+          }
+          this.isLoadingSignal.set(false);
+          return;
+        }
+
+        this.collectNewTeachers(stillNeeded, collected, page);
+      },
+      error: err => {
+        console.error('Failed to fetch more users:', err);
+        this.isLoadingSignal.set(false);
+      }
+    });
+  };
+
+  private loadNextPage(): void {
+    if (this.isLoadingSignal()) return;
+    this.isLoadingSignal.set(true);
+
+    this.collectNewTeachers(this.teachersPerPage, [], this.currentPageSignal() + 1);
+  }
 }
