@@ -1,0 +1,55 @@
+<section class="teacher-filters">
+  <form class="filter-container">
+    <section>
+      <label for="ageFilter">Age</label>
+      <select name="ageFilter" id="ageFilter" [(ngModel)]="filters().age" (ngModelChange)="onFilterChange('age', $event)">
+        <option value="">All ages</option>
+        <option value="18-31">18-31</option>
+        <option value="31-44">31-44</option>
+        <option value="45+">45+</option>
+      </select>
+    </section>
+
+    <section>
+      <label for="countryFilter">Country</label>
+      <select name="countryFilter" id="countryFilter" [(ngModel)]="filters().country" (ngModelChange)="onFilterChange('country', $event)">
+        <option value="">All countries</option>
+        @for (country of availableCountries(); track country) {
+          <option [value]="country">{{ country }}</option>
+        }
+      </select>
+    </section>
+
+    <section>
+      <label for="sexFilter">Sex</label>
+      <select name="sexFilter" id="sexFilter" [(ngModel)]="filters().sex" (ngModelChange)="onFilterChange('sex', $event)">
+        <option value="">All</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+    </section>
+
+    <section>
+      <input 
+        type="checkbox" 
+        id="withPhoto" 
+        name="withPhoto" 
+        [checked]="filters().withPhoto"
+        (change)="onFilterChange('withPhoto', $event)" 
+      />
+      <label for="withPhoto">Only with photo</label>
+    </section>
+
+    <section>
+      <input
+        type="checkbox"
+        name="onlyFavorites"
+        value="onlyFavorites"
+        id="onlyFavorites"
+        [checked]="filters().onlyFavorites"
+        (change)="onFilterChange('onlyFavorites', $event)"
+      />
+      <label for="onlyFavorites">Only favorites</label>
+    </section>
+  </form>
+</section>

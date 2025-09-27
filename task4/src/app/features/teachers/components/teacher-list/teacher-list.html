@@ -1,0 +1,42 @@
+<div class="top-teachers">
+  @for (teacher of paginatedTeachers(); track teacher.id) {
+    <app-teacher-card [teacher]="teacher"></app-teacher-card>
+  } @empty {
+    @if(!isLoading()) {
+      <p class="empty-message">No teachers match the current filters.</p>
+    }
+  }
+</div>
+
+@if(isLoading()) {
+<div class="loader-container">
+  <div class="loader"></div>
+  <p>Loading more teachers...</p>
+</div>
+}
+
+<div class="pagination-controls">
+  <button (click)="onPrevious()" [disabled]="currentPage() === 1 || isLoading()">Previous</button>
+
+  <div class="page-numbers">
+    @for(page of getPageNumbers(); track $index) {
+      @if(page === '...') {
+      <span class="ellipsis">...</span>
+      } @else {
+      <button
+        (click)="onGoToPage(+page)"
+        [class.active]="page === currentPage()">
+        {{ page }}
+      </button>
+      }
+    }
+  </div>
+
+  <button (click)="onNext()" [disabled]="isLoading()">
+    @if(isLoading() && currentPage() === totalPages()) {
+    <span>Loading...</span>
+    } @else {
+    <span>Next</span>
+    }
+  </button>
+</div>
