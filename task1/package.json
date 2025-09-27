@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "serve:json": "json-server --watch db.json"
   },
   "prettier": {
     "printWidth": 100,
@@ -30,7 +31,8 @@
     "@angular/router": "^20.3.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "zone.js": "~0.15.0",
+    "json-server": "^1.0.0-beta.1"
   },
   "devDependencies": {
     "@angular/build": "^20.3.1",
