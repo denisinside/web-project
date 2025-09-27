@@ -1,7 +1,7 @@
 import { Component, signal, computed } from '@angular/core';
 import { TeacherService } from '../../../../shared/services/teacher';
 
-type SortColumn = 'name' | 'specialty' | 'age' | 'gender' | 'country';
+type SortColumn = 'full_name' | 'course' | 'age' | 'gender' | 'country';
 
 @Component({
   selector: 'app-statistics-table',
@@ -12,6 +12,9 @@ type SortColumn = 'name' | 'specialty' | 'age' | 'gender' | 'country';
 export class StatisticsTable {
   sortColumn = signal<SortColumn | null>(null);
   sortDirection = signal<'asc' | 'desc'>('asc');
+  currentPage = signal(1);
+  itemsPerPage = 20;
+  
   statisticsData;
 
   sortedData = computed(() => {
@@ -21,35 +24,32 @@ export class StatisticsTable {
 
     if (!column) return data;
 
-    return data.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+    if (column !== 'age') {
+      return this.teacherService.sortUsers(data, column, direction);
+    } else {
+      return this.teacherService.sortUsers(data, 'b_date', direction);
+    }
+  });
 
-      switch (column) {
-        case 'name':
-          aValue = `${a.firstName} ${a.lastName}`;
-          bValue = `${b.firstName} ${b.lastName}`;
-          break;
-        case 'specialty':
-        case 'age':
-        case 'gender':
-        case 'country':
-          aValue = a[column];
-          bValue = b[column];
-          break;
-        default:
-          return 0;
-      }
+  paginatedData = computed(() => {
+    const sorted = this.sortedData();
+    const page = this.currentPage();
+    const startIndex = (page - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return sorted.slice(startIndex, endIndex);
+  });
 
-      if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
+  paginationInfo = computed(() => {
+    const currentPage = this.currentPage();
+    const totalItems = this.sortedData().length;
+    const startItem = (currentPage - 1) * this.itemsPerPage + 1;
+    const endItem = Math.min(currentPage * this.itemsPerPage, totalItems);
+    return `Showing ${startItem} to ${endItem} of ${totalItems} entries`;
+  });
 
-      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
-      return 0;
-    });
+  totalPages = computed(() => {
+    const totalItems = this.sortedData().length;
+    return Math.ceil(totalItems / this.itemsPerPage);
   });
 
   constructor(private teacherService: TeacherService) {
@@ -63,5 +63,28 @@ export class StatisticsTable {
       this.sortColumn.set(column);
       this.sortDirection.set('asc');
     }
+    this.currentPage.set(1);
+  }
+
+  goToPage(page: number) {
+    const totalPages = this.totalPages();
+    if (page >= 1 && page <= totalPages) {
+      this.currentPage.set(page);
+    }
+  }
+
+  getPageNumbers(): number[] {
+    const totalPages = this.totalPages();
+    const currentPage = this.currentPage();
+    const pages: number[] = [];
+    
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
   }
 }

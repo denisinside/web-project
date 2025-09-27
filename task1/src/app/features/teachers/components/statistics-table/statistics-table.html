@@ -2,13 +2,13 @@
   <table class="table-statistics">
     <thead>
       <tr>
-        <th (click)="sortBy('name')">
+        <th (click)="sortBy('full_name')">
           Name 
-          <span class="table-arrow" [style.opacity]="sortColumn() === 'name' ? '1' : '0'">↓</span>
+          <span class="table-arrow" [style.opacity]="sortColumn() === 'full_name' ? '1' : '0'">↓</span>
         </th>
-        <th (click)="sortBy('specialty')">
+        <th (click)="sortBy('course')">
           Speciality 
-          <span class="table-arrow" [style.opacity]="sortColumn() === 'specialty' ? '1' : '0'">↓</span>
+          <span class="table-arrow" [style.opacity]="sortColumn() === 'course' ? '1' : '0'">↓</span>
         </th>
         <th (click)="sortBy('age')">
           Age 
@@ -26,10 +26,10 @@
     </thead>
 
     <tbody>
-      @for (teacher of sortedData(); track teacher.id) {
+      @for (teacher of paginatedData(); track teacher.id) {
         <tr>
-          <td>{{ teacher.firstName }} {{ teacher.lastName }}</td>
-          <td>{{ teacher.specialty }}</td>
+          <td>{{ teacher.full_name }}</td>
+          <td>{{ teacher.course }}</td>
           <td>{{ teacher.age }}</td>
           <td>{{ teacher.gender }}</td>
           <td>{{ teacher.country }}</td>
@@ -38,10 +38,28 @@
     </tbody>
   </table>
 </div>
-<div class="page-number">
-  <span class="selected-page">1</span>
-  <span class="unselected-page">2</span>
-  <span class="unselected-page">3</span>
-  <span>...</span>
-  <span class="unselected-page">Last</span>
+
+<div class="pagination-container">
+  <div class="pagination-info">
+    {{ paginationInfo() }}
+  </div>
+  
+  <div class="page-number">
+    @if (currentPage() > 1) {
+      <span class="page-btn" (click)="goToPage(currentPage() - 1)">Previous</span>
+    }
+    
+    @for (page of getPageNumbers(); track page) {
+      <span 
+        [class.selected-page]="page === currentPage()" 
+        [class.unselected-page]="page !== currentPage()"
+        (click)="goToPage(page)">
+        {{ page }}
+      </span>
+    }
+    
+    @if (currentPage() < totalPages()) {
+      <span class="page-btn" (click)="goToPage(currentPage() + 1)">Next</span>
+    }
+  </div>
 </div>

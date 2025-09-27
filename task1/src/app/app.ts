@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TeacherService } from './shared/services/teacher';
 import { TeachersModule } from './features/teachers/teachers-module';
@@ -9,11 +9,15 @@ import { TeachersModule } from './features/teachers/teachers-module';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('web-project');
   searchTerm = '';
 
   constructor(private teacherService: TeacherService) {}
+
+  ngOnInit() {
+    this.teacherService.initializeTeachers();
+  }
 
   onSearch(event: Event) {
     event.preventDefault();

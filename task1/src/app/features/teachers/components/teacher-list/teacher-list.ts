@@ -1,6 +1,5 @@
 import { Component, computed } from '@angular/core';
 import { TeacherService } from '../../../../shared/services/teacher';
-import { Teacher } from '../../../../models/teacher.model';
 import { TeacherCard } from '../teacher-card/teacher-card';
 
 @Component({
@@ -14,11 +13,5 @@ export class TeacherList {
 
   constructor(private teacherService: TeacherService) {
     this.filteredTeachers = this.teacherService.filteredTeachers;
-  }
-
-  onTeacherSelected(teacher: Teacher) {
-
-    const event = new CustomEvent('openTeacherInfoModal', { detail: teacher });
-    document.dispatchEvent(event);
   }
 }

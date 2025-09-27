@@ -1,6 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { TeacherService } from '../../../../shared/services/teacher';
-import { Teacher } from '../../../../models/teacher.model';
 
 @Component({
   selector: 'app-favorites-carousel',
@@ -34,12 +33,15 @@ export class FavoritesCarousel {
     }
   }
 
-  onTeacherSelected(teacher: Teacher) {
-    const event = new CustomEvent('openTeacherInfoModal', { detail: teacher });
-    document.dispatchEvent(event);
+  onTeacherSelected(teacher: any) {
+    this.teacherService.openTeacherModal(teacher);
   }
 
-  getInitials(firstName: string, lastName: string): string {
+  getInitials(fullName: string): string {
+    if (!fullName) return '??';
+    const names = fullName.split(' ');
+    const firstName = names[0] || '';
+    const lastName = names[names.length - 1] || '';
     return this.teacherService.getInitials(firstName, lastName);
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Teacher } from '../../../../models/teacher.model';
 import { TeacherService } from '../../../../shared/services/teacher';
 
@@ -10,15 +10,18 @@ import { TeacherService } from '../../../../shared/services/teacher';
 })
 export class TeacherCard {
   @Input({ required: true }) teacher!: Teacher;
-  @Output() teacherSelected = new EventEmitter<Teacher>();
 
   constructor(private teacherService: TeacherService) {}
 
   onTeacherClick() {
-    this.teacherSelected.emit(this.teacher);
+    this.teacherService.openTeacherModal(this.teacher);
   }
 
   getInitials(): string {
-    return this.teacherService.getInitials(this.teacher.firstName, this.teacher.lastName);
+    if (!this.teacher.full_name) return '??';
+    const names = this.teacher.full_name.split(' ');
+    const firstName = names[0] || '';
+    const lastName = names[names.length - 1] || '';
+    return this.teacherService.getInitials(firstName, lastName);
   }
 }
