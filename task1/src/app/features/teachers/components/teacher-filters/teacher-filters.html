@@ -11,14 +11,12 @@
     </section>
 
     <section>
-      <label for="regionFilter">Region</label>
-      <select name="regionFilter" id="regionFilter" [(ngModel)]="filters().region" (ngModelChange)="onFilterChange('region', $event)">
-        <option value="">All regions</option>
-        <option value="Europe">Europe</option>
-        <option value="Asia">Asia</option>
-        <option value="America">America</option>
-        <option value="Africa">Africa</option>
-        <option value="Australia and Oceania">Australia and Oceania</option>
+      <label for="countryFilter">Country</label>
+      <select name="countryFilter" id="countryFilter" [(ngModel)]="filters().country" (ngModelChange)="onFilterChange('country', $event)">
+        <option value="">All countries</option>
+        @for (country of availableCountries(); track country) {
+          <option [value]="country">{{ country }}</option>
+        }
       </select>
     </section>
 

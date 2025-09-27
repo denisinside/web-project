@@ -1,6 +1,5 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { TeacherService } from '../../../../shared/services/teacher';
-import { Teacher } from '../../../../models/teacher.model';
 
 @Component({
   selector: 'app-teacher-info-modal',
@@ -8,27 +7,17 @@ import { Teacher } from '../../../../models/teacher.model';
   templateUrl: './teacher-info-modal.html',
   styleUrl: './teacher-info-modal.css'
 })
-export class TeacherInfoModal implements OnInit {
-  isVisible = signal(false);
-  selectedTeacher = signal<Teacher | null>(null);
+export class TeacherInfoModal {
+  isVisible;
+  selectedTeacher;
 
-  constructor(private teacherService: TeacherService) {}
-
-  ngOnInit() {
-
-    document.addEventListener('openTeacherInfoModal', (event: any) => {
-      this.openModal(event.detail);
-    });
-  }
-
-  openModal(teacher: Teacher) {
-    this.selectedTeacher.set(teacher);
-    this.isVisible.set(true);
+  constructor(private teacherService: TeacherService) {
+    this.isVisible = this.teacherService.isModalVisible;
+    this.selectedTeacher = this.teacherService.selectedTeacher;
   }
 
   closeModal() {
-    this.isVisible.set(false);
-    this.selectedTeacher.set(null);
+    this.teacherService.closeTeacherModal();
   }
 
   onBackdropClick(event: Event) {
@@ -38,19 +27,17 @@ export class TeacherInfoModal implements OnInit {
   }
 
   toggleFavorite() {
-    const teacher = this.selectedTeacher();
-    if (teacher) {
-      this.teacherService.toggleFavorite(teacher.id);
-
-      this.selectedTeacher.set({ ...teacher, isFavorite: !teacher.isFavorite });
-    }
+    this.teacherService.toggleFavoriteInModal();
   }
 
   getInitials(): string {
     const teacher = this.selectedTeacher();
-    if (teacher) {
-      return this.teacherService.getInitials(teacher.firstName, teacher.lastName);
+    if (teacher && teacher.full_name) {
+      const names = teacher.full_name.split(' ');
+      const firstName = names[0] || '';
+      const lastName = names[names.length - 1] || '';
+      return this.teacherService.getInitials(firstName, lastName);
     }
-    return '';
+    return '??';
   }
 }

@@ -1,9 +1,9 @@
 <figure class="teacher-figure">
-  @if (teacher.isFavorite) {
+  @if (teacher.favorite) {
     <div class="photo-star-container">
-      <div class="teacher-photo" (click)="onTeacherClick()">
-        @if (teacher.photoUrl) {
-          <img [src]="teacher.photoUrl" alt="Teacher's photo" />
+      <div class="teacher-photo" (click)="onTeacherClick()" [style.background-color]="teacher.bg_color || ''">
+        @if (teacher.picture_large) {
+          <img [src]="teacher.picture_large" alt="Teacher's photo" />
         } @else {
           <span class="teacher-initials">{{ getInitials() }}</span>
         }
@@ -11,9 +11,9 @@
       <img src="assets/images/star.png" alt="star icon" class="star" />
     </div>
   } @else {
-    <div class="teacher-photo" (click)="onTeacherClick()">
-      @if (teacher.photoUrl) {
-        <img [src]="teacher.photoUrl" alt="Teacher's photo" />
+    <div class="teacher-photo" (click)="onTeacherClick()" [style.background-color]="teacher.bg_color || ''">
+      @if (teacher.picture_large) {
+        <img [src]="teacher.picture_large" alt="Teacher's photo" />
       } @else {
         <span class="teacher-initials">{{ getInitials() }}</span>
       }
@@ -21,8 +21,8 @@
   }
   
   <figcaption>
-    <p class="teacher-name">{{ teacher.firstName }} {{ teacher.lastName }}</p>
-    <p class="teacher-subject">{{ teacher.specialty }}</p>
+    <p class="teacher-name">{{ teacher.full_name }}</p>
+    <p class="teacher-subject">{{ teacher.course }}</p>
     <p class="teacher-country">{{ teacher.country }}</p>
   </figcaption>
 </figure>

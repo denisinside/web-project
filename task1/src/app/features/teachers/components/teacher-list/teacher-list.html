@@ -1,8 +1,7 @@
 <section id="teachers" class="top-teachers">
   @for (teacher of filteredTeachers(); track teacher.id) {
     <app-teacher-card 
-      [teacher]="teacher"
-      (teacherSelected)="onTeacherSelected($event)">
+      [teacher]="teacher">
     </app-teacher-card>
   }
 </section>

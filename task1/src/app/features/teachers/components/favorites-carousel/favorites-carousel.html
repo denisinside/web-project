@@ -11,15 +11,15 @@
   <div class="favorites-figures" #favoritesContainer>
     @for (teacher of favoriteTeachers(); track teacher.id) {
       <figure class="teacher-figure">
-        <div class="teacher-photo" (click)="onTeacherSelected(teacher)">
-          @if (teacher.photoUrl) {
-            <img [src]="teacher.photoUrl" alt="Teacher's photo" />
+        <div class="teacher-photo" (click)="onTeacherSelected(teacher)" [style.background-color]="teacher.bg_color || ''">
+          @if (teacher.picture_large) {
+            <img [src]="teacher.picture_large" alt="Teacher's photo" />
           } @else {
-            <span class="teacher-initials">{{ getInitials(teacher.firstName, teacher.lastName) }}</span>
+            <span class="teacher-initials">{{ getInitials(teacher.full_name || '') }}</span>
           }
         </div>
         <figcaption>
-          <p class="teacher-name">{{ teacher.firstName }} {{ teacher.lastName }}</p>
+          <p class="teacher-name">{{ teacher.full_name }}</p>
           <p class="teacher-country">{{ teacher.country }}</p>
         </figcaption>
       </figure>

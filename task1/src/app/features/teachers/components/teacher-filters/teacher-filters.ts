@@ -10,9 +10,11 @@ import { TeacherService, TeacherFilter } from '../../../../shared/services/teach
 })
 export class TeacherFilters {
   filters;
+  availableCountries;
 
   constructor(private teacherService: TeacherService) {
     this.filters = this.teacherService.filters;
+    this.availableCountries = this.teacherService.availableCountries;
   }
 
   onFilterChange(filterKey: keyof TeacherFilter, event: any) {
