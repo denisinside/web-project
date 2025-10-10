@@ -4,6 +4,7 @@ import { Teacher } from '../../models/teacher.model';
 import { AdditionalUser, User } from '../../models/user.model';
 import { randomUserMock, additionalUsers } from '../FE4U-Lab2-mock';
 import { UserApiService } from './user-api.service';
+import _ from 'lodash';
 
 export interface TeacherFilter {
   age: '18-31' | '31-44' | '45+' | '';
@@ -53,8 +54,7 @@ export class TeacherService {
       const filtered = this.filteredTeachers();
       const page = this.currentPageSignal();
       const startIndex = (page - 1) * this.teachersPerPage;
-      const endIndex = startIndex + this.teachersPerPage;
-      return filtered.slice(startIndex, endIndex);
+      return _.slice(filtered, startIndex, startIndex + this.teachersPerPage);
   });
 
   totalPages = computed(() => {
@@ -65,8 +65,12 @@ export class TeacherService {
 
   availableCountries = computed(() => {
     const teachers = this.teachersSignal();
-    const countries = [...new Set(teachers.map(teacher => teacher.country).filter(Boolean))];
-    return countries.sort();
+    return _.chain(teachers)
+      .map('country')
+      .compact()
+      .uniq()
+      .sortBy()
+      .value();
   });
   
   filteredTeachers = computed(() => {
@@ -92,12 +96,12 @@ export class TeacherService {
   });
 
   favoriteTeachers = computed(() => 
-    this.teachersSignal().filter(teacher => teacher.favorite)
+    _.filter(this.teachersSignal(), { favorite: true })
   );
 
 
   updateFilters(newFilters: Partial<TeacherFilter>) {
-    this.filtersSignal.update(current => ({ ...current, ...newFilters }));
+    this.filtersSignal.update(current => _.assign({}, current, newFilters));
     this.currentPageSignal.set(1);
   }
 
@@ -123,7 +127,7 @@ export class TeacherService {
 
   toggleFavorite(teacherId: string) {
     this.teachersSignal.update(teachers => 
-      teachers.map(teacher => 
+      _.map(teachers, teacher => 
         teacher.id === teacherId 
           ? { ...teacher, favorite: !teacher.favorite }
           : teacher
@@ -150,13 +154,11 @@ export class TeacherService {
   }
 
   addTeacher(newTeacherData: Omit<Teacher, 'id'>) {
-    const teacherPayload = {
-      ...newTeacherData
-    };
+    const teacherPayload = _.cloneDeep(newTeacherData);
 
     this.http.post<Teacher>(this.jsonServerUrl, teacherPayload).subscribe({
       next: (addedTeacher) => {
-        this.teachersSignal.update(teachers => [...teachers, addedTeacher]);
+        this.teachersSignal.update(teachers => _.concat(teachers, addedTeacher));
         console.log('Teacher added successfully via json-server:', addedTeacher);
       },
       error: (error) => {
@@ -167,7 +169,7 @@ export class TeacherService {
 
   getTeacherById(id: string) {
     return computed(() => 
-      this.teachersSignal().find(teacher => teacher.id === id)
+      _.find(this.teachersSignal(), { id })
     );
   }
 
@@ -188,11 +190,11 @@ export class TeacherService {
   }
 
   getRandomCourse() : string {
-    return this.courses[Math.floor(Math.random() * this.courses.length)];
+    return _.sample(this.courses) || 'Mathematics';
   } 
 
   getRandomBgColor() : string | null {
-    return Math.random() > 0.3 ? this.bgColors[Math.floor(Math.random() * this.bgColors.length)] : null;
+    return Math.random() > 0.3 ? _.sample(this.bgColors) || null : null;
   }
 
   getFormattedGender(gender: string) : string | null {
@@ -260,26 +262,15 @@ export class TeacherService {
   }
 
   removeDuplicates(users: Teacher[]) {
-    const uniqueUsers: Teacher[] = [];
-    
-    for (const user of users) {
-        const isExisting = uniqueUsers.some(existingUser => this.isDuplicate(user, existingUser));
-        if (!isExisting) {
-            uniqueUsers.push(user);
-        }
-    }
-    
-    return uniqueUsers;
+    return _.uniqWith(users, (user1, user2) => this.isDuplicate(user1, user2));
   }
 
   formatMockData(): Teacher[] {
     try {
-        const formattedRandomUsers = randomUserMock.map(user => this.userFormatter(user));
-        const formattedAdditionalUsers = additionalUsers.map(user => this.userFormatter(user));
-        const allUsers = [...formattedRandomUsers, ...formattedAdditionalUsers];
-        const uniqueUsers = this.removeDuplicates(allUsers);
-        return uniqueUsers;
-        
+        const formattedRandomUsers = _.map(randomUserMock, user => this.userFormatter(user));
+        const formattedAdditionalUsers = _.map(additionalUsers, user => this.userFormatter(user));
+        const allUsers = _.concat(formattedRandomUsers, formattedAdditionalUsers);
+        return this.removeDuplicates(allUsers);
     } catch (error) {
         console.error('Error formatting mock data:', error);
         return [];
@@ -287,35 +278,35 @@ export class TeacherService {
   }
 
   filterUsers(users: Teacher[], filters: Partial<TeacherFilter>): Teacher[] {
-    if (!Array.isArray(users)) {
+    if (!_.isArray(users)) {
         console.error('First parameter must be an array');
         return [];
     }
 
-    return users.filter(user => {
-        if (filters.country !== undefined && filters.country !== '') {
+    return _.filter(users, user => {
+        if (!_.isEmpty(filters.country) && filters.country !== '') {
             if (user.country !== filters.country) return false;
         }
 
-        if (filters.age !== undefined && filters.age !== '') {
+        if (!_.isEmpty(filters.age) && filters.age !== '') {
             if (!user.age) return false;
             
             const age = user.age;
-            if (filters.age === '18-31' && (age < 18 || age > 31)) return false;
-            if (filters.age === '31-44' && (age < 31 || age > 44)) return false;
+            if (filters.age === '18-31' && !_.inRange(age, 18, 32)) return false;
+            if (filters.age === '31-44' && !_.inRange(age, 31, 45)) return false;
             if (filters.age === '45+' && age < 45) return false;
         }
 
-        if (filters.sex !== undefined && filters.sex !== '') {
+        if (!_.isEmpty(filters.sex) && filters.sex !== '') {
             if (!user.gender || user.gender !== filters.sex) return false;
         }
 
-        if (filters.onlyFavorites !== undefined && filters.onlyFavorites === true) {
+        if (filters.onlyFavorites === true) {
             if (user.favorite !== filters.onlyFavorites) return false;
         }
 
-        if (filters.withPhoto !== undefined) {
-            if (filters.withPhoto && !user.picture_large) return false;
+        if (filters.withPhoto) {
+            if (!user.picture_large) return false;
         }
 
         return true;
@@ -323,100 +314,71 @@ export class TeacherService {
   }
 
   sortUsers(users: Teacher[], sortBy: string, order: 'asc' | 'desc' = 'asc'): Teacher[] {
-    if (!Array.isArray(users)) {
+    if (!_.isArray(users)) {
         console.error('First parameter must be an array');
         return [];
     }
 
     const validSortFields = ['full_name', 'age', 'b_date', 'country', 'gender', 'course'];
-    if (!validSortFields.includes(sortBy)) {
+    if (!_.includes(validSortFields, sortBy)) {
         console.error(`Invalid sort field. Use one of: ${validSortFields.join(', ')}`);
         return [...users];
     }
 
     const validOrders = ['asc', 'desc'];
-    if (!validOrders.includes(order.toLowerCase())) {
+    if (!_.includes(validOrders, order.toLowerCase())) {
         console.error(`Invalid sort order. Use 'asc' or 'desc'`);
         return [...users];
     }
 
-    const sortedUsers = [...users];
-
-    return sortedUsers.sort((a, b) => {
-        let valueA = a[sortBy as keyof Teacher];
-        let valueB = b[sortBy as keyof Teacher];
-
-        if (valueA == null && valueB == null) return 0;
-        if (valueA == null) return order === 'asc' ? 1 : -1;
-        if (valueB == null) return order === 'asc' ? -1 : 1;
-
+    // Custom iteratee for handling different field types
+    const iteratee = (user: Teacher) => {
+        const value = user[sortBy as keyof Teacher];
+        
+        if (_.isNil(value)) return '';
+        
         switch (sortBy) {
             case 'full_name':
             case 'course':
             case 'gender':
             case 'country':
-                valueA = valueA.toString().toLowerCase();
-                valueB = valueB.toString().toLowerCase();
-                break;
-
+                return _.toLower(_.toString(value));
+            
             case 'age':
-                valueA = Number(valueA);
-                valueB = Number(valueB);
-                
-                if (isNaN(valueA) && isNaN(valueB)) return 0;
-                if (isNaN(valueA)) return order === 'asc' ? 1 : -1;
-                if (isNaN(valueB)) return order === 'asc' ? -1 : 1;
-                break;
-
+                return _.toNumber(value) || 0;
+            
             case 'b_date':
-                const dateA = new Date(valueA as string);
-                const dateB = new Date(valueB as string);
-                
-                if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-                if (isNaN(dateA.getTime())) return order === 'asc' ? 1 : -1;
-                if (isNaN(dateB.getTime())) return order === 'asc' ? -1 : 1;
-                
-                valueA = dateA.getTime();
-                valueB = dateB.getTime();
-                break;
-
+                return new Date(value as string).getTime() || 0;
+            
             default:
-                valueA = valueA.toString().toLowerCase();
-                valueB = valueB.toString().toLowerCase();
+                return _.toLower(_.toString(value));
         }
+    };
 
-        let comparison = 0;
-        if (valueA > valueB) {
-            comparison = 1;
-        } else if (valueA < valueB) {
-            comparison = -1;
-        }
-
-        return order === 'desc' ? -comparison : comparison;
-    });
+    return _.orderBy(users, [iteratee], [order]);
   }
 
   findUser(users: Teacher[], searchParams: Partial<TeacherFilter>, findAll: boolean = true): Teacher[] | Teacher | null {
-    if (!Array.isArray(users)) {
+    if (!_.isArray(users)) {
         console.error('First parameter must be an array');
         return findAll ? [] : null;
     }
 
-    const results = users.filter(user => {
-        if (searchParams.search && searchParams.search !== '') {
-            const searchValue = searchParams.search.toString().toLowerCase();
+    const results: Teacher[] = _.filter(users, user => {
+        if (!_.isEmpty(searchParams.search)) {
+            const searchValue = _.toLower(_.toString(searchParams.search));
 
             if (!user.full_name) return false;
 
-            const nameMatch = user.full_name.toLowerCase().includes(searchValue);
-            const ageMatch = user.age !== undefined && user.age !== null && user.age.toString().includes(searchValue);
-            const noteMatch = user.note && user.note.toString().toLowerCase().includes(searchValue);
+            const nameMatch = _.includes(_.toLower(user.full_name), searchValue);
+            const ageMatch = !_.isNil(user.age) && _.includes(_.toString(user.age), searchValue);
+            const noteMatch = user.note && _.includes(_.toLower(user.note), searchValue);
 
-            if (!nameMatch && !ageMatch && !noteMatch) return false;
+            return nameMatch || ageMatch || noteMatch;
         }
 
         return true;
-    });
+    }) as Teacher[];
 
     return findAll ? results : (results.length > 0 ? results[0] : null);
   }
@@ -472,34 +434,21 @@ export class TeacherService {
   }
 
 validateUser(user: Teacher) {
-    if(user.full_name && !this.validateNameValue(user.full_name)) {
-        return false;
-    }
-    if(user.gender && !this.validateNameValue(user.gender)) {
-         return false;
-    }
-    if(user.note && !this.validateNameValue(user.note)) {
-        return false;
-    }
-    if(user.state && !this.validateNameValue(user.state)) {
-        return false;
-    }
-    if(user.city && !this.validateNameValue(user.city)) {
-        return false;
-    }
-    if(user.country && !this.validateNameValue(user.country)) {
-        return false;
-    }
-    if(user.age && !this.validateAge(user.age)) {
-        return false;
-    }
-    if(user.phone && !this.validatePhone(user.phone)) {
-        return false;
-    }
-    if(user.email && !this.validateEmail(user.email)) {
-        return false;
-    }
-    return true;
+    const validations = [
+      { condition: user.full_name, validator: () => this.validateNameValue(user.full_name!) },
+      { condition: user.gender, validator: () => this.validateNameValue(user.gender!) },
+      { condition: user.note, validator: () => this.validateNameValue(user.note!) },
+      { condition: user.state, validator: () => this.validateNameValue(user.state!) },
+      { condition: user.city, validator: () => this.validateNameValue(user.city!) },
+      { condition: user.country, validator: () => this.validateNameValue(user.country!) },
+      { condition: user.age, validator: () => this.validateAge(user.age!) },
+      { condition: user.phone, validator: () => this.validatePhone(user.phone!) },
+      { condition: user.email, validator: () => this.validateEmail(user.email!) }
+    ];
+
+    return _.every(validations, ({ condition, validator }) => 
+      !condition || validator()
+    );
   }
 
 
@@ -510,7 +459,7 @@ validateUser(user: Teacher) {
   private async initializeWithMockData(): Promise<void> {
     try {
       const formattedUsers = this.formatMockData();
-      const validUsers = formattedUsers.filter(user => this.validateUser(user));
+      const validUsers = _.filter(formattedUsers, user => this.validateUser(user));
       this.teachersSignal.set(validUsers);
       console.log(`Initialized ${validUsers.length} valid teachers from mock data only`);
     } catch (error) {
@@ -521,33 +470,33 @@ validateUser(user: Teacher) {
 
   private collectNewTeachers(needed: number, collected: Teacher[], page: number = 1): void {
     if (needed <= 0) {
-      this.teachersSignal.update(existing => [...existing, ...collected]);
+      this.teachersSignal.update(existing => _.concat(existing, collected));
       this.currentPageSignal.set(page);
       this.isLoadingSignal.set(false);
       return;
     }
 
-    const fetchCount = Math.max(needed, 15);
+    const fetchCount = _.max([needed, 15])!;
 
     this.userApiService.getUsersWithParams({ results: fetchCount }).subscribe({
       next: apiUsers => {
-        if (!apiUsers || apiUsers.length === 0) {
+        if (_.isEmpty(apiUsers)) {
           console.warn("API returned no users, stopping load more.");
-          if (collected.length > 0) {
-            this.teachersSignal.update(existing => [...existing, ...collected]);
+          if (!_.isEmpty(collected)) {
+            this.teachersSignal.update(existing => _.concat(existing, collected));
             this.currentPageSignal.set(page);
           }
           this.isLoadingSignal.set(false);
           return;
         }
 
-        const formattedUsers = apiUsers.map(user => this.userFormatter(user));
-        const validUsers = formattedUsers.filter(user => this.validateUser(user));
+        const formattedUsers = _.map(apiUsers, user => this.userFormatter(user));
+        const validUsers = _.filter(formattedUsers, user => this.validateUser(user));
 
         let stillNeeded = needed;
         for (const user of validUsers) {
-          const isDuplicate = this.teachersSignal().some(existing => this.isDuplicate(user, existing)) ||
-            collected.some(existing => this.isDuplicate(user, existing));
+          const isDuplicate = _.some(this.teachersSignal(), existing => this.isDuplicate(user, existing)) ||
+            _.some(collected, existing => this.isDuplicate(user, existing));
           if (!isDuplicate) {
             collected.push(user);
             stillNeeded--;
@@ -556,8 +505,8 @@ validateUser(user: Teacher) {
         }
 
         if (stillNeeded > 0 && apiUsers.length < fetchCount) {
-          if (collected.length > 0) {
-            this.teachersSignal.update(existing => [...existing, ...collected]);
+          if (!_.isEmpty(collected)) {
+            this.teachersSignal.update(existing => _.concat(existing, collected));
             this.currentPageSignal.set(page);
           }
           this.isLoadingSignal.set(false);

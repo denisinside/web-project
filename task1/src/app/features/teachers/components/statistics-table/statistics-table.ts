@@ -1,5 +1,6 @@
 import { Component, signal, computed } from '@angular/core';
 import { TeacherService } from '../../../../shared/services/teacher';
+import _ from 'lodash';
 
 type SortColumn = 'full_name' | 'course' | 'age' | 'gender' | 'country';
 
@@ -35,15 +36,14 @@ export class StatisticsTable {
     const sorted = this.sortedData();
     const page = this.currentPage();
     const startIndex = (page - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    return sorted.slice(startIndex, endIndex);
+    return _.slice(sorted, startIndex, startIndex + this.itemsPerPage);
   });
 
   paginationInfo = computed(() => {
     const currentPage = this.currentPage();
     const totalItems = this.sortedData().length;
     const startItem = (currentPage - 1) * this.itemsPerPage + 1;
-    const endItem = Math.min(currentPage * this.itemsPerPage, totalItems);
+    const endItem = _.min([currentPage * this.itemsPerPage, totalItems])!;
     return `Showing ${startItem} to ${endItem} of ${totalItems} entries`;
   });
 
@@ -68,7 +68,7 @@ export class StatisticsTable {
 
   goToPage(page: number) {
     const totalPages = this.totalPages();
-    if (page >= 1 && page <= totalPages) {
+    if (_.inRange(page, 1, totalPages + 1)) {
       this.currentPage.set(page);
     }
   }
@@ -76,15 +76,10 @@ export class StatisticsTable {
   getPageNumbers(): number[] {
     const totalPages = this.totalPages();
     const currentPage = this.currentPage();
-    const pages: number[] = [];
     
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, startPage + 4);
+    const startPage = _.max([1, currentPage - 2])!;
+    const endPage = _.min([totalPages, startPage + 4])!;
     
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    return pages;
+    return _.range(startPage, endPage + 1);
   }
 }

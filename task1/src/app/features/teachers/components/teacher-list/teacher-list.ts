@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TeacherService } from '../../../../shared/services/teacher';
 import { TeacherCard } from '../teacher-card/teacher-card';
+import _ from 'lodash';
 
 @Component({
   selector: 'app-teacher-list',
@@ -40,7 +41,7 @@ export class TeacherList {
     if (total <= 1) return [];
 
     if (total <= 7) {
-      return Array.from({ length: total }, (_, i) => i + 1);
+      return _.range(1, total + 1);
     }
 
     const pages: (number | string)[] = [1];
@@ -61,6 +62,6 @@ export class TeacherList {
     }
     pages.push(total);
     
-    return [...new Set(pages)];
+    return _.uniq(pages);
   }
 }
