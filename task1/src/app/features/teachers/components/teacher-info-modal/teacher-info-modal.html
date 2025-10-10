@@ -32,6 +32,9 @@
           <address>
             <p>{{ selectedTeacher()!.city }}, {{ selectedTeacher()!.country }}</p>
             <p>{{ selectedTeacher()!.age }}, {{ selectedTeacher()!.gender }}</p>
+            @if (getDaysUntilBirthday() !== null) {
+              <p><strong>Days until birthday:</strong> {{ getDaysUntilBirthday() }}</p>
+            }
             <p class="email">{{ selectedTeacher()!.email }}</p>
             <p>{{ selectedTeacher()!.phone }}</p>
           </address>

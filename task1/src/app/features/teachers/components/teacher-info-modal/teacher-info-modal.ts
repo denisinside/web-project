@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { TeacherService } from '../../../../shared/services/teacher';
+import dayjs from 'dayjs';
 
 @Component({
   selector: 'app-teacher-info-modal',
@@ -39,5 +40,23 @@ export class TeacherInfoModal {
       return this.teacherService.getInitials(firstName, lastName);
     }
     return '??';
+  }
+
+  getDaysUntilBirthday(): number | null {
+    const teacher = this.selectedTeacher();
+    if (!teacher || !teacher.b_date) {
+      return null;
+    }
+
+    const today = dayjs();
+    const birthDate = dayjs(teacher.b_date);
+    
+    let nextBirthday = birthDate.year(today.year());
+    
+    if (nextBirthday.isBefore(today, 'day') || nextBirthday.isSame(today, 'day')) {
+      nextBirthday = nextBirthday.add(1, 'year');
+    }
+    
+    return nextBirthday.diff(today, 'day');
   }
 }
