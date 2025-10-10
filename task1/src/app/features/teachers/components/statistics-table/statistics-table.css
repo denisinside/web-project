@@ -82,6 +82,21 @@
   color: #202020;
 }
 
+.pivot-container-wrapper,
+.flat-container-wrapper {
+  margin-top: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#pivot-container,
+#flat-container {
+  width: 100%;
+  min-height: 600px;
+}
+
 @media screen and (max-width: 768px) {
   .charts-container {
     grid-template-columns: 1fr;
@@ -89,11 +104,18 @@
   
   .view-tabs {
     justify-content: center;
+    flex-wrap: wrap;
   }
   
   .view-tabs button {
     flex: 1;
     text-align: center;
+    min-width: 120px;
+  }
+  
+  .pivot-container-wrapper,
+  .flat-container-wrapper {
+    padding: 10px;
   }
 }
 

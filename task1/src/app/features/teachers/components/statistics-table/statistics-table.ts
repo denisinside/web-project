@@ -2,11 +2,12 @@ import { Component, signal, computed, effect, AfterViewInit, OnDestroy } from '@
 import { TeacherService } from '../../../../shared/services/teacher';
 import _ from 'lodash';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import WebDataRocksConstructor from '@webdatarocks/webdatarocks';
 
 Chart.register(...registerables);
 
 type SortColumn = 'full_name' | 'course' | 'age' | 'gender' | 'country';
-type ViewMode = 'table' | 'charts';
+type ViewMode = 'table' | 'charts' | 'pivot' | 'flat';
 
 @Component({
   selector: 'app-statistics-table',
@@ -25,6 +26,8 @@ export class StatisticsTable implements AfterViewInit, OnDestroy {
 
   private charts: Chart[] = [];
   private chartsInitialized = false;
+  private pivotTable: any = null;
+  private flatTable: any = null;
 
   sortedData = computed(() => {
     const data = [...this.statisticsData()];
@@ -67,6 +70,12 @@ export class StatisticsTable implements AfterViewInit, OnDestroy {
       if (this.viewMode() === 'charts' && this.chartsInitialized) {
         setTimeout(() => this.initializeCharts(), 100);
       }
+      if (this.viewMode() === 'pivot' && this.chartsInitialized) {
+        setTimeout(() => this.initializePivotTable(), 100);
+      }
+      if (this.viewMode() === 'flat' && this.chartsInitialized) {
+        setTimeout(() => this.initializeFlatTable(), 100);
+      }
     });
   }
 
@@ -75,10 +84,18 @@ export class StatisticsTable implements AfterViewInit, OnDestroy {
     if (this.viewMode() === 'charts') {
       setTimeout(() => this.initializeCharts(), 100);
     }
+    if (this.viewMode() === 'pivot') {
+      setTimeout(() => this.initializePivotTable(), 100);
+    }
+    if (this.viewMode() === 'flat') {
+      setTimeout(() => this.initializeFlatTable(), 100);
+    }
   }
 
   ngOnDestroy(): void {
     this.destroyCharts();
+    this.destroyPivotTable();
+    this.destroyFlatTable();
   }
 
   sortBy(column: SortColumn) {
@@ -112,8 +129,20 @@ export class StatisticsTable implements AfterViewInit, OnDestroy {
     this.viewMode.set(mode);
     if (mode === 'charts') {
       setTimeout(() => this.initializeCharts(), 100);
+      this.destroyPivotTable();
+      this.destroyFlatTable();
+    } else if (mode === 'pivot') {
+      setTimeout(() => this.initializePivotTable(), 100);
+      this.destroyCharts();
+      this.destroyFlatTable();
+    } else if (mode === 'flat') {
+      setTimeout(() => this.initializeFlatTable(), 100);
+      this.destroyCharts();
+      this.destroyPivotTable();
     } else {
       this.destroyCharts();
+      this.destroyPivotTable();
+      this.destroyFlatTable();
     }
   }
 
@@ -252,5 +281,121 @@ export class StatisticsTable implements AfterViewInit, OnDestroy {
   private destroyCharts(): void {
     _.forEach(this.charts, chart => chart.destroy());
     this.charts = [];
+  }
+
+  private initializePivotTable(): void {
+    this.destroyPivotTable();
+
+    const container = document.getElementById('pivot-container');
+    if (!container) {
+      return;
+    }
+
+    const data = this.prepareDataForPivot();
+
+    this.pivotTable = new WebDataRocksConstructor({
+      container: '#pivot-container',
+      toolbar: true,
+      height: 600,
+      report: {
+        dataSource: {
+          data: data
+        },
+        slice: {
+          rows: [
+            { uniqueName: 'Country' }
+          ],
+          columns: [
+            { uniqueName: 'Course' }
+          ],
+          measures: [
+            {
+              uniqueName: 'Count',
+              aggregation: 'sum'
+            }
+          ]
+        },
+        options: {
+          grid: {
+            type: 'compact',
+            showTotals: true,
+            showGrandTotals: true
+          }
+        }
+      }
+    });
+  }
+
+  private prepareDataForPivot(): any[] {
+    const teachers = this.statisticsData();
+    
+    return _.map(teachers, teacher => ({
+      'Country': teacher.country || 'N/A',
+      'Course': teacher.course || 'N/A',
+      'Full Name': teacher.full_name || 'N/A',
+      'Age': teacher.age || 0,
+      'Gender': teacher.gender || 'N/A',
+      'City': teacher.city || 'N/A',
+      'Email': teacher.email || 'N/A',
+      'Phone': teacher.phone || 'N/A',
+      'Count': 1
+    }));
+  }
+
+  private destroyPivotTable(): void {
+    if (this.pivotTable) {
+      this.pivotTable.dispose();
+      this.pivotTable = null;
+    }
+  }
+
+  private initializeFlatTable(): void {
+    this.destroyFlatTable();
+
+    const container = document.getElementById('flat-container');
+    if (!container) {
+      return;
+    }
+
+    const data = this.prepareDataForPivot();
+
+    this.flatTable = new WebDataRocksConstructor({
+      container: '#flat-container',
+      toolbar: true,
+      height: 600,
+      report: {
+        dataSource: {
+          data: data
+        },
+        slice: {
+          rows: [
+            { uniqueName: 'Full Name' },
+            { uniqueName: 'Country' },
+            { uniqueName: 'City' },
+            { uniqueName: 'Course' },
+            { uniqueName: 'Age' },
+            { uniqueName: 'Gender' },
+            { uniqueName: 'Email' },
+            { uniqueName: 'Phone' }
+          ],
+          columns: [],
+          measures: []
+        },
+        options: {
+          grid: {
+            type: 'flat',
+            showTotals: false,
+            showGrandTotals: false
+          }
+        }
+      }
+    });
+  }
+
+  private destroyFlatTable(): void {
+    if (this.flatTable) {
+      this.flatTable.dispose();
+      this.flatTable = null;
+    }
   }
 }

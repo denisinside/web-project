@@ -9,6 +9,16 @@
     (click)="switchView('charts')">
     Charts View
   </button>
+  <button 
+    [class.active-tab]="viewMode() === 'pivot'" 
+    (click)="switchView('pivot')">
+    Pivot View
+  </button>
+  <button 
+    [class.active-tab]="viewMode() === 'flat'" 
+    (click)="switchView('flat')">
+    All Teachers
+  </button>
 </div>
 
 @if (viewMode() === 'table') {
@@ -93,5 +103,17 @@
     <div class="chart-wrapper">
       <canvas id="ageChart"></canvas>
     </div>
+  </div>
+}
+
+@if (viewMode() === 'pivot') {
+  <div class="pivot-container-wrapper">
+    <div id="pivot-container"></div>
+  </div>
+}
+
+@if (viewMode() === 'flat') {
+  <div class="flat-container-wrapper">
+    <div id="flat-container"></div>
   </div>
 }
