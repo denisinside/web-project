@@ -1,65 +1,97 @@
-<div class="table-scroll-container">
-  <table class="table-statistics">
-    <thead>
-      <tr>
-        <th (click)="sortBy('full_name')">
-          Name 
-          <span class="table-arrow" [style.opacity]="sortColumn() === 'full_name' ? '1' : '0'">↓</span>
-        </th>
-        <th (click)="sortBy('course')">
-          Speciality 
-          <span class="table-arrow" [style.opacity]="sortColumn() === 'course' ? '1' : '0'">↓</span>
-        </th>
-        <th (click)="sortBy('age')">
-          Age 
-          <span class="table-arrow" [style.opacity]="sortColumn() === 'age' ? '1' : '0'">↓</span>
-        </th>
-        <th (click)="sortBy('gender')">
-          Gender 
-          <span class="table-arrow" [style.opacity]="sortColumn() === 'gender' ? '1' : '0'">↓</span>
-        </th>
-        <th (click)="sortBy('country')">
-          Nationality 
-          <span class="table-arrow" [style.opacity]="sortColumn() === 'country' ? '1' : '0'">↓</span>
-        </th>
-      </tr>
-    </thead>
+<div class="view-tabs">
+  <button 
+    [class.active-tab]="viewMode() === 'table'" 
+    (click)="switchView('table')">
+    Table View
+  </button>
+  <button 
+    [class.active-tab]="viewMode() === 'charts'" 
+    (click)="switchView('charts')">
+    Charts View
+  </button>
+</div>
 
-    <tbody>
-      @for (teacher of paginatedData(); track teacher.id) {
+@if (viewMode() === 'table') {
+  <div class="table-scroll-container">
+    <table class="table-statistics">
+      <thead>
         <tr>
-          <td>{{ teacher.full_name }}</td>
-          <td>{{ teacher.course }}</td>
-          <td>{{ teacher.age }}</td>
-          <td>{{ teacher.gender }}</td>
-          <td>{{ teacher.country }}</td>
+          <th (click)="sortBy('full_name')">
+            Name 
+            <span class="table-arrow" [style.opacity]="sortColumn() === 'full_name' ? '1' : '0'">↓</span>
+          </th>
+          <th (click)="sortBy('course')">
+            Speciality 
+            <span class="table-arrow" [style.opacity]="sortColumn() === 'course' ? '1' : '0'">↓</span>
+          </th>
+          <th (click)="sortBy('age')">
+            Age 
+            <span class="table-arrow" [style.opacity]="sortColumn() === 'age' ? '1' : '0'">↓</span>
+          </th>
+          <th (click)="sortBy('gender')">
+            Gender 
+            <span class="table-arrow" [style.opacity]="sortColumn() === 'gender' ? '1' : '0'">↓</span>
+          </th>
+          <th (click)="sortBy('country')">
+            Nationality 
+            <span class="table-arrow" [style.opacity]="sortColumn() === 'country' ? '1' : '0'">↓</span>
+          </th>
         </tr>
-      }
-    </tbody>
-  </table>
-</div>
+      </thead>
 
-<div class="pagination-container">
-  <div class="pagination-info">
-    {{ paginationInfo() }}
+      <tbody>
+        @for (teacher of paginatedData(); track teacher.id) {
+          <tr>
+            <td>{{ teacher.full_name }}</td>
+            <td>{{ teacher.course }}</td>
+            <td>{{ teacher.age }}</td>
+            <td>{{ teacher.gender }}</td>
+            <td>{{ teacher.country }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </div>
-  
-  <div class="page-number">
-    @if (currentPage() > 1) {
-      <span class="page-btn" (click)="goToPage(currentPage() - 1)">Previous</span>
-    }
+
+  <div class="pagination-container">
+    <div class="pagination-info">
+      {{ paginationInfo() }}
+    </div>
     
-    @for (page of getPageNumbers(); track page) {
-      <span 
-        [class.selected-page]="page === currentPage()" 
-        [class.unselected-page]="page !== currentPage()"
-        (click)="goToPage(page)">
-        {{ page }}
-      </span>
-    }
-    
-    @if (currentPage() < totalPages()) {
-      <span class="page-btn" (click)="goToPage(currentPage() + 1)">Next</span>
-    }
+    <div class="page-number">
+      @if (currentPage() > 1) {
+        <span class="page-btn" (click)="goToPage(currentPage() - 1)">Previous</span>
+      }
+      
+      @for (page of getPageNumbers(); track page) {
+        <span 
+          [class.selected-page]="page === currentPage()" 
+          [class.unselected-page]="page !== currentPage()"
+          (click)="goToPage(page)">
+          {{ page }}
+        </span>
+      }
+      
+      @if (currentPage() < totalPages()) {
+        <span class="page-btn" (click)="goToPage(currentPage() + 1)">Next</span>
+      }
+    </div>
   </div>
-</div>
+}
+
+@if (viewMode() === 'charts') {
+  <div class="charts-container">
+    <div class="chart-wrapper">
+      <canvas id="countryChart"></canvas>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="courseChart"></canvas>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="genderChart"></canvas>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="ageChart"></canvas>
+    </div>
+  </div>
+}
