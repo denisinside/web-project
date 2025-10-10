@@ -1,5 +1,7 @@
 /* Global styles for Teachinder app */
 
+@import 'leaflet/dist/leaflet.css';
+
 body {
   font-family: "Lucida Sans Unicode", "Lucida Sans", "Lucida Sans Regular", "Lucida Grande", Geneva, Verdana, sans-serif;
   margin: 0;

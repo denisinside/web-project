@@ -45,7 +45,15 @@
           <p>{{ selectedTeacher()!.note || 'No additional information available.' }}</p>
         </article>
 
-        <a href="#" class="toggle-map" (click)="$event.preventDefault()">toggle map</a>
+        @if (hasCoordinates()) {
+          <a href="#" class="toggle-map" (click)="toggleMap($event)">
+            {{ isMapVisible() ? 'hide map' : 'show map' }}
+          </a>
+        }
+
+        @if (isMapVisible() && hasCoordinates()) {
+          <div id="teacher-map" class="teacher-map"></div>
+        }
       </section>
     </dialog>
   </section>
